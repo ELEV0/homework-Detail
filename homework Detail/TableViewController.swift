@@ -11,33 +11,23 @@ import UIKit
 class TableViewController: UITableViewController {
     
     
-    var quotes = Singleton.shared.quotes
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        ff()
-    }
+    var quotes: [Quote]? = []
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        ff()
-    }
-    
-    func ff() {
-        Singleton.shared.quotes?.append(Quote(text: "lox", author: "aa"))
-        quotes?.append(Quote(text: "lox 2", author: "aa 2"))
         tableView.reloadData()
-        print(quotes)
     }
     
-
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
     
     
     // MARK: - Table view data source
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 
-        guard let guotes = quotes else { return 0 }
-        return guotes.count
+        guard let quotes = quotes else { return 0 }
+        return quotes.count
     }
 
     
@@ -54,12 +44,21 @@ class TableViewController: UITableViewController {
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
-        if let _ = sender as? UIBarButtonItem, let _ = segue.destination as? ViewController {
+        if let _ = sender as? UIBarButtonItem, let vc = segue.destination as? ViewController {
+            vc.bool = false
         } else if let cell = sender as? UITableViewCell, let vc = segue.destination as? ViewController {
-            if let indexPath = tableView.indexPath(for: cell) {
+            if let indexPath = tableView.indexPathForSelectedRow {
                 vc.quote = quotes![indexPath.row]
+//                quotes?.remove(at: indexPath.row)
+                vc.bool = true
             }
         }
     }
 
+}
+
+extension TableViewController: Sendable {
+    func passData(data: Quote) {
+        quotes?.append(data)
+    }
 }

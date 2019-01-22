@@ -8,18 +8,45 @@
 
 import UIKit
 
+protocol Sendable {
+    func passData(data: Quote)
+}
+
 class ViewController: UIViewController {
     
-    @IBOutlet weak var textView: UITextView!
-    @IBOutlet weak var textField: UITextField!
+    @IBOutlet weak var textView: UITextView! {
+        didSet {
+            if textView.text == "Entry your note" {
+                textView.textColor = .gray
+            }
+            textView.textColor = .black
+        }
+    }
+    @IBOutlet weak var textField: UITextField! {
+        didSet {
+            textField.text = ""
+        }
+    }
     
     @IBOutlet weak var saveButton: UIButton!
     
     var quote: Quote!
+    var bool = true
+    
+    var textFromTextView = ""
+    var textFromTextField = ""
+    
+    var delegate: Sendable!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        textView.delegate = self
+        delegate = navigationController?.viewControllers.first as? Sendable
+        updateUI()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        textView.resignFirstResponder()
     }
     
 
@@ -31,11 +58,12 @@ class ViewController: UIViewController {
             textField.placeholder = "Author"
         }
     }
-    
-    var textFromTextView = ""
-    var textFromTextField = ""
 
     @IBAction func saveAction(_ sender: UIButton) {
+        setting()
+    }
+    
+    func setting() {
         textFromTextView = textView.text
         textFromTextField = textField.text!
         
@@ -43,11 +71,12 @@ class ViewController: UIViewController {
             alert(text: "Заполни поля", action: "Cancel")
             
         } else if !textFromTextView.isEmpty && !textFromTextField.isEmpty {
-            Singleton.shared.quotes?.append(Quote(text: textView.text, author: textField.text!))
-            print(Singleton.shared.quotes)
-//            alert(text: "Quote was saved", action: "Ok")
+            quote = Quote(text: textView.text, author: textField.text!)
+            delegate.passData(data: quote)
+            navigationController?.popViewController(animated: true)
         }
     }
+    
     
     
     func alert(text: String, action: String) {
@@ -58,3 +87,20 @@ class ViewController: UIViewController {
     
 }
 
+
+extension ViewController: UITextViewDelegate {
+    
+    func textViewDidBeginEditing(_ textView: UITextView) {
+        if textView.text == "Entry your note" {
+            textView.text.removeAll()
+            textView.textColor = .black
+        }
+    }
+    func textViewDidEndEditing(_ textView: UITextView) {
+        if textView.text.isEmpty {
+            textView.text = "Entry your note"
+            textView.textColor = .gray
+        }
+        textView.textColor = .black
+    }
+}
